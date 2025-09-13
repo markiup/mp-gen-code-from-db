@@ -22,7 +22,7 @@ nest generate controller code_gen --no-spec
 npm install @nestjs/config
 npm install @nestjs/typeorm typeorm
 npm install pg
-
+npm install class-validator class-transformer
 ```
 
 
