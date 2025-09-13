@@ -8,6 +8,7 @@ export class CodeGenController {
 
     @Get()
     async getConsultaDatos(): Promise<Record<string, MataDataDto[]>> {
+        this.codeGenService.generarArchivosEntidad();
         return this.codeGenService.metadataAgrupadoPorTabla();
     }
 

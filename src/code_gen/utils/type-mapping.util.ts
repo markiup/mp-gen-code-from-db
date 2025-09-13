@@ -54,22 +54,28 @@ export function getOrmComplement(col: MataDataDto): string {
 
     if (col.dataType === 'character varying') {
         proceso = true;
-        // return 'varchar';
-        return ''
+        if (col.maximumLength) {
+            typeTxt = `, type: 'varchar', length: ${col.maximumLength} `
+        }
     }
     if (col.dataType === 'integer') {
         proceso = true;
-        typeTxt = `type: 'int'`
-        //   @Column({ name: 'ava_valor', type: 'numeric', precision: 20, scale: 4 })
+        typeTxt = `, type: 'int'`
     }
-    // if (dataType === 'integer') {
-    //     proceso = true;
-    //     typeTxt = `type: '${typeOrmType}'`
-    //     //   @Column({ name: 'ava_valor', type: 'numeric', precision: 20, scale: 4 })
-    // }
+    if (col.dataType === 'date') {
+        proceso = true;
+        typeTxt = `, type: 'date'`;//, default: () => 'CURRENT_DATE' `
+    }
+    if (col.dataType === 'numeric') {
+        proceso = true;
+        typeTxt = `, type: 'numeric', precision: ${col.numericPrecision} `
+        if (col.maximumLength) {
+            typeTxt = `${typeTxt}, scale: ${col.maximumLength} `
+        }
+    }
     if (!proceso) {
-        console.log(MataDataDto);
-        throw new Error(`Error getOrmComplement: ${col}`);
+        console.log(col);
+        throw new Error(`Error getOrmComplement: ${col.dataType}`);
     }
     return `${typeTxt} ${isNullableTxt}`;
 }

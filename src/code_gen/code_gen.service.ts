@@ -60,33 +60,37 @@ export class CodeGenService {
 
     async generarArchivosEntidad(): Promise<void> {
         const groupedMetadata = await this.metadataAgrupadoPorTabla();
-        const contents: string[] = [];
+        let contents: string[] = [];
 
-        const outputDir = path.join(__dirname, '..', 'generated-entities');
+        //const outputDir = path.join(__dirname, '..', 'generated-entities');
+        const outputDir = '/opt/sgm/git/ati/glagro/mp-gen-code-from-db/src/code_gen/entities';
 
         await fs.mkdir(outputDir, { recursive: true });
 
         for (const tableName in groupedMetadata) {
             const entityName = toPascalCase(tableName);
-            contents.push(`import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';`);
-            contents.push(`@Entity({ name: '${tableName}' , schema: '${this.schemaName}'})`);
-            contents.push(`export class ${entityName} {`);
-
-
-            contents.push(`@PrimaryGeneratedColumn({ name: 'ava_id' })`);
+            contents = []
+            contents.push(`import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';\n`);
+            contents.push(`@Entity({ name: '${tableName}' , schema: '${this.schemaName}'})\n`);
+            contents.push(`export class ${entityName} {\n`);
 
             const columns = groupedMetadata[tableName];
+            let primero = true;
             columns.forEach(col => {
-
                 const propName = toCamelCase(col.columnName);
                 const propType = getTsType(col.dataType);
                 const ormComplement = getOrmComplement(col);
-                contents.push(`@Column({ name: '${col.columnName}', ${ormComplement} })`);
-                contents.push(`${propName}: ${propType};`);
+                if (primero) {
+                    contents.push(`@PrimaryGeneratedColumn({ name: '${col.columnName}' })\n`);
+                    primero = false
+                } else {
+                    contents.push(`@Column({ name: '${col.columnName}' ${ormComplement} })\n`);
+                }
+                contents.push(`${propName}: ${propType};\n`);
             });
+            contents.push(`}\n`);
 
-
-            const fileName = `${entityName}.entity.ts`;
+            const fileName = `${tableName}.entity.ts`;
             const filePath = path.join(outputDir, fileName);
             await fs.writeFile(filePath, contents);
             console.log(`Entidad generada y guardada en: ${filePath}`);
