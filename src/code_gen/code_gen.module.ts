@@ -6,4 +6,5 @@ import { CodeGenController } from './code_gen.controller';
   providers: [CodeGenService],
   controllers: [CodeGenController]
 })
-export class CodeGenModule {}
+
+export class CodeGenModule { }

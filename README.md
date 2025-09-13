@@ -16,6 +16,16 @@ nest generate service code_gen --no-spec
 nest generate controller code_gen --no-spec
 ```
 
+## Libs
+
+```bash
+npm install @nestjs/config
+npm install @nestjs/typeorm typeorm
+npm install pg
+
+```
+
+
 ## Project setup
 
 ```bash
