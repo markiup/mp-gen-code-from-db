@@ -13,6 +13,7 @@ import {
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { generaService } from './utils/genera-service';
+import { generaController } from './utils/genera-controller';
 
 @Injectable()
 export class CodeGenService {
@@ -189,14 +190,14 @@ export class CodeGenService {
             await fs.writeFile(dtoFilePath, dtoBody);
             console.log(`DTO generada: ${dtoFilePath}`);
 
-            const srvFileName = `${tableName}.services.ts`;
+            const srvFileName = `${tableName}.service.ts`;
             const srvFilePath = path.join(outputDirSrv, srvFileName);
             await fs.writeFile(srvFilePath, generaService(columns));
             console.log(`srv generada: ${srvFilePath}`);
 
-            const ctrlFileName = `${tableName}.controllers.ts`;
+            const ctrlFileName = `${tableName}.controller.ts`;
             const ctrlFilePath = path.join(outputDirCtrl, ctrlFileName);
-            await fs.writeFile(ctrlFilePath, generaService(columns));
+            await fs.writeFile(ctrlFilePath, generaController(columns));
             console.log(`Ctrl generada: ${ctrlFilePath}`);
         }
     }
