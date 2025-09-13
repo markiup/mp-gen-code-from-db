@@ -1,3 +1,5 @@
+import { MataDataDto } from "../dto/metadata.dto";
+
 export function toPascalCase(str: string): string {
     return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
 }
@@ -44,23 +46,31 @@ export function getValidatorDecorator(dataType: string): string | null {
     return result;
 }
 
-export function getTypeOrmType(dataType: string, maxLen: number | null, numPrec: number | null): string {
-    switch (dataType) {
-        case 'text':
-        case 'character varying':
-            return 'varchar';
-        case 'integer':
-            return 'int';
-        case 'numeric':
-            return 'numeric';
-        case 'date':
-            return 'date';
-        case 'timestamp with time zone':
-            return 'timestamptz';
-        case 'boolean':
-            return 'boolean';
-        default:
-            return 'varchar';
+export function getOrmComplement(col: MataDataDto): string {
+    const isNullableFlag = col.isNullable === 'YES' ? 'true' : 'false';
+    const isNullableTxt = `, nullable: ${isNullableFlag}`
+    let typeTxt = ''
+    let proceso: boolean = false;
+
+    if (col.dataType === 'character varying') {
+        proceso = true;
+        // return 'varchar';
+        return ''
     }
+    if (col.dataType === 'integer') {
+        proceso = true;
+        typeTxt = `type: 'int'`
+        //   @Column({ name: 'ava_valor', type: 'numeric', precision: 20, scale: 4 })
+    }
+    // if (dataType === 'integer') {
+    //     proceso = true;
+    //     typeTxt = `type: '${typeOrmType}'`
+    //     //   @Column({ name: 'ava_valor', type: 'numeric', precision: 20, scale: 4 })
+    // }
+    if (!proceso) {
+        console.log(MataDataDto);
+        throw new Error(`Error getOrmComplement: ${col}`);
+    }
+    return `${typeTxt} ${isNullableTxt}`;
 }
 
