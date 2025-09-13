@@ -14,7 +14,7 @@ export class CodeGenService {
             c.table_name                AS "tableName",
             c.column_name               AS "columnName",
             c.data_type                 AS "dataType",
-            c.character_maximum_length  AS "characterMaximumLength",
+            c.character_maximum_length  AS "maximumLength",
             c.numeric_precision         AS "numericPrecision",
             c.is_nullable               AS "isNullable",
             pgd.description             AS "comment"
@@ -30,5 +30,20 @@ export class CodeGenService {
    `;
         const resultados = await this.dataSource.query(sqlQuery);
         return resultados;
+    }
+
+    async metadataAgrupadoPorTabla(): Promise<Record<string, MataDataDto[]>> {
+        const metadata = await this.obtenerDatosConsultaNativo();
+        const groupedData: Record<string, MataDataDto[]> = {};
+
+        metadata.forEach(item => {
+            const { tableName } = item;
+            if (!groupedData[tableName]) {
+                groupedData[tableName] = [];
+            }
+            groupedData[tableName].push(item);
+        });
+
+        return groupedData;
     }
 }

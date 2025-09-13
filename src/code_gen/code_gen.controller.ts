@@ -7,8 +7,8 @@ export class CodeGenController {
     constructor(private readonly codeGenService: CodeGenService) { }
 
     @Get()
-    async getConsultaDatos(): Promise<MataDataDto[]> {
-        return this.codeGenService.obtenerDatosConsultaNativo();
+    async getConsultaDatos(): Promise<Record<string, MataDataDto[]>> {
+        return this.codeGenService.metadataAgrupadoPorTabla();
     }
 
 }

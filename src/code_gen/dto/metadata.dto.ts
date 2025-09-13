@@ -12,7 +12,7 @@ export class MataDataDto {
 
     @IsOptional()
     @IsNumber()
-    characterMaximumLength: number | null;
+    maximumLength: number | null;
 
     @IsOptional()
     @IsNumber()
