@@ -12,6 +12,7 @@ import {
 } from './utils/type-mapping.util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { generaService } from './utils/genera-service';
 
 @Injectable()
 export class CodeGenService {
@@ -67,18 +68,26 @@ export class CodeGenService {
         let dtoBody: string = '';
 
         // const outputDir = path.join(__dirname, '..', 'generated-entities');
-        const outputDirEntities = path.join('/opt/sgm/tmp/gen_code', 'entities');
-        await fs.mkdir(outputDirEntities, { recursive: true });
-
-        const outputDirDto = path.join('/opt/sgm/tmp/gen_code', 'dto');
-        await fs.mkdir(outputDirDto, { recursive: true });
-
+        const outputDir = '/opt/sgm/tmp/gen_code/micro';
         for (const tableName in groupedMetadata) {
+
+            const outputDirEntities = path.join(outputDir, tableName, 'entities');
+            await fs.mkdir(outputDirEntities, { recursive: true });
+
+            const outputDirDto = path.join(outputDir, tableName, 'dto');
+            await fs.mkdir(outputDirDto, { recursive: true });
+
+            const outputDirSrv = path.join(outputDir, tableName, 'services');
+            await fs.mkdir(outputDirSrv, { recursive: true });
+
+            const outputDirCtrl = path.join(outputDir, tableName, 'controllers');
+            await fs.mkdir(outputDirCtrl, { recursive: true });
+
             const entityName = toPascalCase(tableName);
             entityBody = ''
             entityBody += `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';\n`;
             entityBody += `@Entity({ name: '${tableName}' , schema: '${this.schemaName}'})\n`;
-            entityBody += `export class ${entityName} {\n`;
+            entityBody += `export class ${entityName}Entity extends BaseEntity {\n`;
 
             dtoBody = ''
             dtoBody += `import { ApiProperty } from "@nestjs/swagger";\n\n`;
@@ -179,6 +188,16 @@ export class CodeGenService {
             const dtoFilePath = path.join(outputDirDto, dtoFileName);
             await fs.writeFile(dtoFilePath, dtoBody);
             console.log(`DTO generada: ${dtoFilePath}`);
+
+            const srvFileName = `${tableName}.services.ts`;
+            const srvFilePath = path.join(outputDirSrv, srvFileName);
+            await fs.writeFile(srvFilePath, generaService(columns));
+            console.log(`srv generada: ${srvFilePath}`);
+
+            const ctrlFileName = `${tableName}.controllers.ts`;
+            const ctrlFilePath = path.join(outputDirCtrl, ctrlFileName);
+            await fs.writeFile(ctrlFilePath, generaService(columns));
+            console.log(`Ctrl generada: ${ctrlFilePath}`);
         }
     }
 }
