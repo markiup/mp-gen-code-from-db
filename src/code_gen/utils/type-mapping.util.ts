@@ -69,8 +69,8 @@ export function getOrmComplement(col: MataDataDto): string {
     if (col.dataType === 'numeric') {
         proceso = true;
         typeTxt = `, type: 'numeric', precision: ${col.numericPrecision} `
-        if (col.maximumLength) {
-            typeTxt = `${typeTxt}, scale: ${col.maximumLength} `
+        if (col.numericScale) {
+            typeTxt = `${typeTxt}, scale: ${col.numericScale} `
         }
     }
     if (!proceso) {

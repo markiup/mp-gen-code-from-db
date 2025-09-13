@@ -27,6 +27,7 @@ export class CodeGenService {
             c.data_type                 AS "dataType",
             c.character_maximum_length  AS "maximumLength",
             c.numeric_precision         AS "numericPrecision",
+            c.numeric_scale             AS "numericScale",            
             c.is_nullable               AS "isNullable",
             pgd.description             AS "comment"
         FROM information_schema.columns c

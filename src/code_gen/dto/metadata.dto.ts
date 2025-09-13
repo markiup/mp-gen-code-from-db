@@ -18,6 +18,10 @@ export class MataDataDto {
     @IsNumber()
     numericPrecision: number | null;
 
+    @IsOptional()
+    @IsNumber()
+    numericScale: number | null;
+
     @IsString()
     isNullable: string;
 
