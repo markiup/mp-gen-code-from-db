@@ -58,13 +58,17 @@ export function getOrmComplement(col: MataDataDto): string {
             typeTxt = `, type: 'varchar', length: ${col.maximumLength} `
         }
     }
+    if (col.dataType === 'boolean') {
+        proceso = true;
+        typeTxt = `, type: 'boolean' `
+    }
     if (col.dataType === 'integer') {
         proceso = true;
-        typeTxt = `, type: 'int'`
+        typeTxt = `, type: 'int' `
     }
     if (col.dataType === 'date') {
         proceso = true;
-        typeTxt = `, type: 'date'`;//, default: () => 'CURRENT_DATE' `
+        typeTxt = `, type: 'date' `;//, default: () => 'CURRENT_DATE' `
     }
     if (col.dataType === 'numeric') {
         proceso = true;
@@ -80,3 +84,39 @@ export function getOrmComplement(col: MataDataDto): string {
     return `${typeTxt} ${isNullableTxt}`;
 }
 
+export function getEntityDefaultValue(col: MataDataDto): string {
+    if (col.dataType === 'date') {
+        return ' = new Date() '
+    }
+    if (col.columnName.substring(4) === 'estado') {
+        return ' = 11 '
+    }
+    if (col.columnName.substring(4) === 'eliminado') {
+        return ' = false '
+    }
+    return '';
+}
+
+export function addEntityProperty(columns: MataDataDto[], column: MataDataDto): string {
+    const columna = column.columnName;
+    if (columns.some(col => col.columnName === columna)) {
+        return '';
+    }
+    const propiedad = toCamelCase(columna);
+    let entityBody = `@Column({ name: "${columna}" ${getOrmComplement(column)} })\n`
+    entityBody += `${propiedad}: ${getTsType(column.dataType)} ${getEntityDefaultValue(column)};\n\n`;
+    return entityBody;
+}
+
+export function addDtoProperty(columns: MataDataDto[], column: MataDataDto): string {
+    const columna = column.columnName;
+    if (columns.some(col => col.columnName === columna)) {
+        return '';
+    }
+    const propiedad = toCamelCase(columna);
+    let dtoBody = `@ApiProperty({\n`;
+    dtoBody += `title: '${columna}', description: ''\n`;
+    dtoBody += `})\n`;
+    dtoBody += `${propiedad}: ${getTsType(column.dataType)};\n\n`;
+    return dtoBody;
+}

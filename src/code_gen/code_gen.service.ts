@@ -7,6 +7,8 @@ import {
     getTsType,
     getOrmComplement,
     getValidatorDecorator,
+    addEntityProperty,
+    addDtoProperty,
 } from './utils/type-mapping.util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -61,19 +63,26 @@ export class CodeGenService {
 
     async generarArchivosEntidad(): Promise<void> {
         const groupedMetadata = await this.metadataAgrupadoPorTabla();
-        let contents: string[] = [];
+        let entityBody: string = '';
+        let dtoBody: string = '';
 
-        //const outputDir = path.join(__dirname, '..', 'generated-entities');
-        const outputDir = '/opt/sgm/git/ati/glagro/mp-gen-code-from-db/src/code_gen/entities';
+        // const outputDir = path.join(__dirname, '..', 'generated-entities');
+        const outputDirEntities = path.join('/opt/sgm/tmp/gen_code', 'entities');
+        await fs.mkdir(outputDirEntities, { recursive: true });
 
-        await fs.mkdir(outputDir, { recursive: true });
+        const outputDirDto = path.join('/opt/sgm/tmp/gen_code', 'dto');
+        await fs.mkdir(outputDirDto, { recursive: true });
 
         for (const tableName in groupedMetadata) {
             const entityName = toPascalCase(tableName);
-            contents = []
-            contents.push(`import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';\n`);
-            contents.push(`@Entity({ name: '${tableName}' , schema: '${this.schemaName}'})\n`);
-            contents.push(`export class ${entityName} {\n`);
+            entityBody = ''
+            entityBody += `import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';\n`;
+            entityBody += `@Entity({ name: '${tableName}' , schema: '${this.schemaName}'})\n`;
+            entityBody += `export class ${entityName} {\n`;
+
+            dtoBody = ''
+            dtoBody += `import { ApiProperty } from "@nestjs/swagger";\n\n`;
+            dtoBody += `export class ${entityName}Dto {\n`;
 
             const columns = groupedMetadata[tableName];
             let primero = true;
@@ -82,19 +91,94 @@ export class CodeGenService {
                 const propType = getTsType(col.dataType);
                 const ormComplement = getOrmComplement(col);
                 if (primero) {
-                    contents.push(`@PrimaryGeneratedColumn({ name: '${col.columnName}' })\n`);
+                    entityBody += `@PrimaryGeneratedColumn({ name: '${col.columnName}' })\n`;
                     primero = false
                 } else {
-                    contents.push(`@Column({ name: '${col.columnName}' ${ormComplement} })\n`);
+                    entityBody += `@Column({ name: '${col.columnName}' ${ormComplement} })\n`;
                 }
-                contents.push(`${propName}: ${propType};\n`);
-            });
-            contents.push(`}\n`);
+                entityBody += `${propName}: ${propType};\n\n`;
 
+                dtoBody += `@ApiProperty({\n`;
+                dtoBody += `title: '${col.columnName}', description: ''\n`;
+                dtoBody += `})\n`;
+                dtoBody += `${propName}: ${propType};\n\n`;
+
+            });
+
+            const campoRegUsu = {
+                tableName: tableName,
+                columnName: `${tableName.substring(0, 3)}_reg_usu`,
+                dataType: 'integer',
+                isNullable: 'NO',
+                comment: 'Usuario de registro',
+                maximumLength: null,
+                numericPrecision: null,
+                numericScale: null
+            }
+            entityBody += addEntityProperty(columns, campoRegUsu);
+            dtoBody += addDtoProperty(columns, campoRegUsu);
+
+            const campoRegFecha = {
+                ...campoRegUsu,
+                columnName: `${tableName.substring(0, 3)}_reg_fecha`,
+                dataType: 'date',
+                isNullable: 'NO',
+                comment: 'Fecha en la que se registro',
+            }
+            entityBody += addEntityProperty(columns, campoRegFecha);
+            dtoBody += addDtoProperty(columns, campoRegFecha);
+
+            const campoActUsu = {
+                ...campoRegUsu,
+                columnName: `${tableName.substring(0, 3)}_act_usu`,
+                dataType: 'integer',
+                isNullable: 'YES',
+                comment: 'Usuario que actualiza',
+            }
+            entityBody += addEntityProperty(columns, campoActUsu);
+            dtoBody += addDtoProperty(columns, campoActUsu);
+
+            const campoActFecha = {
+                ...campoRegUsu,
+                columnName: `${tableName.substring(0, 3)}_act_fecha`,
+                dataType: 'date',
+                isNullable: 'YES',
+                comment: 'Fecha en la que se actualizo',
+            }
+            entityBody += addEntityProperty(columns, campoActFecha);
+            dtoBody += addDtoProperty(columns, campoActFecha);
+
+            const campoEstado = {
+                ...campoRegUsu,
+                columnName: `${tableName.substring(0, 3)}_estado`,
+                dataType: 'integer',
+                isNullable: 'NO',
+                comment: 'estado del registro',
+            }
+            entityBody += addEntityProperty(columns, campoEstado);
+            dtoBody += addDtoProperty(columns, campoEstado);
+
+            const campoEliminado = {
+                ...campoRegUsu,
+                columnName: `${tableName.substring(0, 3)}_eliminado`,
+                dataType: 'boolean',
+                isNullable: 'NO',
+                comment: 'eliminado',
+            }
+            entityBody += addEntityProperty(columns, campoEliminado);
+            dtoBody += addDtoProperty(columns, campoEliminado);
+
+            entityBody += `}\n`;
             const fileName = `${tableName}.entity.ts`;
-            const filePath = path.join(outputDir, fileName);
-            await fs.writeFile(filePath, contents);
-            console.log(`Entidad generada y guardada en: ${filePath}`);
+            const filePath = path.join(outputDirEntities, fileName);
+            await fs.writeFile(filePath, entityBody);
+            console.log(`Entidad generada: ${filePath}`);
+
+            dtoBody += `}\n`;
+            const dtoFileName = `${tableName}.dto.ts`;
+            const dtoFilePath = path.join(outputDirDto, dtoFileName);
+            await fs.writeFile(dtoFilePath, dtoBody);
+            console.log(`DTO generada: ${dtoFilePath}`);
         }
     }
 }
