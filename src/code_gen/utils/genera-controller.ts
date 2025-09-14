@@ -44,13 +44,13 @@ export class ${entityName}Controller {
     }
 
     @ApiOperation({
-        summary: 'Obtener el registro de la entidad',
-        description: 'Envía un ID para obtener un registro específico',
+        summary: 'Obtener todos los registros de la entidad',
+        description: 'Recupera todos los registros de la entidad ${entityName} cuyo campo eliminado sea false',
     })
-    @Get('find/:id')
+    @Get('/find')
     @UseGuards(AuthGuard('api-key'))
-    async findOne(@Param('id') id: number) {
-        return await this.service.findEntityById(id);
+    async findAll() {
+        return await this.service.findAll();
     }
 }               
         `;

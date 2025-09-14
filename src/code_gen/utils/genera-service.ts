@@ -56,13 +56,16 @@ export class ${entityName}Service {
     }
 
     /**
-     * Recuperar todos los registros
-     * @param id Identificador de la entidad
-     * @returns Entity
-     */
-    async findAll() {
+    * Recupera todos los registros de la tabla .
+    * @returns Lista ${entityName}Entity
+    */
+    async findAll(): Promise<${entityName}Entity[]> {
         try {
-            return await this.repository.findOne({ where: { ${eliminado}: false } }) || {}
+            return await this.repository.find({
+                where: {
+                    ${eliminado}: false,
+                },
+            });
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }

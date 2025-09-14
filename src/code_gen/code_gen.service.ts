@@ -14,6 +14,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { generaService } from './utils/genera-service';
 import { generaController } from './utils/genera-controller';
+import { generaModule } from './utils/genera-module';
 
 @Injectable()
 export class CodeGenService {
@@ -72,17 +73,18 @@ export class CodeGenService {
         const outputDir = '/opt/sgm/tmp/gen_code/micro';
         for (const tableName in groupedMetadata) {
 
+            const isGeneraCreate = ['meta', 'avance'].includes(tableName);
+
             const outputDirEntities = path.join(outputDir, tableName, 'entities');
             await fs.mkdir(outputDirEntities, { recursive: true });
-
-            const outputDirDto = path.join(outputDir, tableName, 'dto');
-            await fs.mkdir(outputDirDto, { recursive: true });
 
             const outputDirSrv = path.join(outputDir, tableName, 'services');
             await fs.mkdir(outputDirSrv, { recursive: true });
 
             const outputDirCtrl = path.join(outputDir, tableName, 'controllers');
             await fs.mkdir(outputDirCtrl, { recursive: true });
+
+            const moduleDirCtrl = path.join(outputDir, tableName);
 
             const entityName = toPascalCase(tableName);
             entityBody = ''
@@ -184,12 +186,16 @@ export class CodeGenService {
             await fs.writeFile(filePath, entityBody);
             console.log(`Entidad generada: ${filePath}`);
 
-            dtoBody += `}\n`;
-            const dtoFileName = `${tableName}.dto.ts`;
-            const dtoFilePath = path.join(outputDirDto, dtoFileName);
-            await fs.writeFile(dtoFilePath, dtoBody);
-            console.log(`DTO generada: ${dtoFilePath}`);
+            if (isGeneraCreate) {
+                const outputDirDto = path.join(outputDir, tableName, 'dto');
+                await fs.mkdir(outputDirDto, { recursive: true });
 
+                dtoBody += `}\n`;
+                const dtoFileName = `${tableName}.dto.ts`;
+                const dtoFilePath = path.join(outputDirDto, dtoFileName);
+                await fs.writeFile(dtoFilePath, dtoBody);
+                console.log(`DTO generada: ${dtoFilePath}`);
+            }
             const srvFileName = `${tableName}.service.ts`;
             const srvFilePath = path.join(outputDirSrv, srvFileName);
             await fs.writeFile(srvFilePath, generaService(columns));
@@ -199,6 +205,11 @@ export class CodeGenService {
             const ctrlFilePath = path.join(outputDirCtrl, ctrlFileName);
             await fs.writeFile(ctrlFilePath, generaController(columns));
             console.log(`Ctrl generada: ${ctrlFilePath}`);
+
+            const moduleFileName = `${tableName}.module.ts`;
+            const moduleFilePath = path.join(moduleDirCtrl, moduleFileName);
+            await fs.writeFile(moduleFilePath, generaModule(columns));
+            console.log(`Module generado: ${moduleFilePath}`);
         }
     }
 }
