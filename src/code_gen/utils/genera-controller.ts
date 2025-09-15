@@ -15,9 +15,10 @@ export function generaController(columns: MataDataDto[]): String {
         }
     })
 
+    const isGeneraCreate = ['meta', 'avance'].includes(columns[0].tableName);
 
 
-    return `
+    let codeGen = `
 import { Body, Controller, Get, Param, Post, UseFilters, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiOperation, ApiSecurity, ApiTags } from "@nestjs/swagger";
@@ -33,7 +34,9 @@ import { ${entityName}Service } from "../services/${tableName}.service";
 export class ${entityName}Controller {
     constructor(private service: ${entityName}Service) { }
 
-    @ApiOperation({
+    `;
+
+    codeGen += isGeneraCreate ? `@ApiOperation({
         summary: 'Registra entidad ${tableName}',
         description: 'Guarda la entidad ${tableName} dentro de la base de datos'
     })
@@ -43,6 +46,9 @@ export class ${entityName}Controller {
         return await this.service.createRegisterEntity(body);
     }
 
+`: ` `;
+
+    codeGen += `
     @ApiOperation({
         summary: 'Obtener todos los registros de la entidad',
         description: 'Recupera todos los registros de la entidad ${entityName} cuyo campo eliminado sea false',
@@ -53,5 +59,7 @@ export class ${entityName}Controller {
         return await this.service.findAll();
     }
 }               
-        `;
+
+`;
+    return codeGen;
 }

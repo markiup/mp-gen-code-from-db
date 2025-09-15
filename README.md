@@ -25,6 +25,11 @@ npm install pg
 npm install class-validator class-transformer
 ```
 
+## Service
+
+- genera los objetos del micro
+
+http://localhost:3002/code-gen
 
 ## Project setup
 

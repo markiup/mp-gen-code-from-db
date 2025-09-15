@@ -15,9 +15,10 @@ export function generaService(columns: MataDataDto[]): String {
         }
     })
 
+    const isGeneraCreate = ['meta', 'avance'].includes(columns[0].tableName);
 
 
-    return `
+    let codeGen = `
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Parameters } from "src/utils/parameters";
@@ -35,6 +36,9 @@ export class ${entityName}Service {
         this.tableName = "${tableName}"
     }
 
+`;
+
+    codeGen += isGeneraCreate ? `   
     /**
     * Registra en la tabla la entidad
     * @param data
@@ -55,6 +59,9 @@ export class ${entityName}Service {
         }
     }
 
+`: ``;
+
+    codeGen += `
     /**
     * Recupera todos los registros de la tabla .
     * @returns Lista ${entityName}Entity
@@ -71,5 +78,7 @@ export class ${entityName}Service {
         }
     }
 }               
-        `;
+`;
+
+    return codeGen;
 }
